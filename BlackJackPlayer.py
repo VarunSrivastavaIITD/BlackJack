@@ -95,13 +95,13 @@ def create_hit_table(S, prob):
 
 
 def create_split_table(S, prob):
-    dH = dict()
+    dS = dict()
 
     for state in S:
         if 'T' in state:
             continue
 
-        dH.setdefault(state, set())
+        dS.setdefault(state, set())
 
         X, Y, D, P, I = map(int, state.split('_'))
 
@@ -112,31 +112,31 @@ def create_split_table(S, prob):
             if (e == 1):
                 for i in xrange(1, 11):
                     if e == i:
-                        dH[state].add(('{}_{}_{}_{}_{}'.format(
+                        dS[state].add(('{}_{}_{}_{}_{}'.format(
                             e + i, e + 10 + i, D, 1, 1), prob if i == 10 else
                                        (1 - prob) / 9, None))
                     else:
-                        dH[state].add(('{}_{}_{}_{}_{}'.format(
+                        dS[state].add(('{}_{}_{}_{}_{}'.format(
                             e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
                                        (1 - prob) / 9, None))
 
             else:
                 for i in xrange(1, 11):
                     if i == 1:
-                        dH[state].add(('{}_{}_{}_{}_{}'.format(
+                        dS[state].add(('{}_{}_{}_{}_{}'.format(
                             e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
                                        (1 - prob) / 9, None))
                     else:
                         if e == i:
-                            dH[state].add(('{}_{}_{}_{}_{}'.format(
+                            dS[state].add(('{}_{}_{}_{}_{}'.format(
                                 e + i, e + i, D, 1, 1), prob if i == 10 else
                                            (1 - prob) / 9, None))
                         else:
-                            dH[state].add(('{}_{}_{}_{}_{}'.format(
+                            dS[state].add(('{}_{}_{}_{}_{}'.format(
                                 e + i, e + i, D, 0, 1), prob if i == 10 else
                                            (1 - prob) / 9, None))
 
-    return dH
+    return dS
 
 
 def create_transition_table(S, prob):
