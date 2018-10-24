@@ -31,6 +31,17 @@ def create_state_space():
 
 
 def create_hit_table(S, prob):
+    def update_bust(hit_dict, state, bust, p):
+
+        bust_elements = filter(lambda s: s[0] == bust, hit_dict[state])
+        if len(bust_elements) != 0:
+            assert (len(bust_elements) == 1)
+            bust_elem = bust_elements[0]
+            hit_dict[state].remove(bust_elem)
+            hit_dict[state].add((bust, bust_elem[1] + p, bust_elem[2]))
+        else:
+            hit_dict[state].add((bust, p, -1))
+
     dH = dict()
 
     B = 'TB'
@@ -47,33 +58,38 @@ def create_hit_table(S, prob):
         X, Y, D, P, I = map(int, state.split('_'))
 
         if X == Y:
-            dH[state].update({(B, None,
-                               None) if (X + i) > 21 or (Y + i) > 21 else
-                              ('{}_{}_{}_{}_{}'.format(X + i, Y + i, D, 0, 0),
-                               prob if i == 10 else (1 - prob) / 9, None)
-                              for i in xrange(2, 11)})
-            if (X + 1) > 21:
-                dH[state].add((B, None, None))
-
-            elif (Y + 11) > 21:
-                dH[state].add(('{}_{}_{}_{}_{}'.format(X + 1, X + 1, D, 0, 0),
-                               (1 - prob) / 9, None))
-
-            else:
-                dH[state].add(('{}_{}_{}_{}_{}'.format(X + 1, Y + 11, D, 0, 0),
-                               (1 - prob) / 9, None))
-        else:
-            for i in xrange(1, 11):
-                if (X + i) > 21:
-                    dH[state].add((B, None, None))
-                elif (Y + i) > 21:
-                    dH[state].add(('{}_{}_{}_{}_{}'.format(
-                        X + i, X + i, D, 0, 0), prob if i == 10 else
-                                   (1 - prob) / 9, None))
+            for i in xrange(2, 11):
+                if (X + i) > 21 or (Y + i) > 21:
+                    update_bust(dH, state, B,
+                                (1 - prob) / 9 if i != 10 else prob)
                 else:
                     dH[state].add(('{}_{}_{}_{}_{}'.format(
                         X + i, Y + i, D, 0, 0), prob if i == 10 else
-                                   (1 - prob) / 9, None))
+                                   (1 - prob) / 9, 0))
+
+            if (X + 1) > 21:
+                update_bust(dH, state, B, (1 - prob) / 9)
+
+            elif (Y + 11) > 21:
+                dH[state].add(('{}_{}_{}_{}_{}'.format(X + 1, X + 1, D, 0, 0),
+                               (1 - prob) / 9, 0))
+
+            else:
+                dH[state].add(('{}_{}_{}_{}_{}'.format(X + 1, Y + 11, D, 0, 0),
+                               (1 - prob) / 9, 0))
+        else:
+            for i in xrange(1, 11):
+                if (X + i) > 21:
+                    update_bust(dH, state, B,
+                                (1 - prob) / 9 if i != 10 else prob)
+                elif (Y + i) > 21:
+                    dH[state].add(('{}_{}_{}_{}_{}'.format(
+                        X + i, X + i, D, 0, 0), prob if i == 10 else
+                                   (1 - prob) / 9, 0))
+                else:
+                    dH[state].add(('{}_{}_{}_{}_{}'.format(
+                        X + i, Y + i, D, 0, 0), prob if i == 10 else
+                                   (1 - prob) / 9, 0))
 
     return dH
 
