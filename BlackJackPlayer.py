@@ -114,27 +114,27 @@ def create_split_table(S, prob):
                     if e == i:
                         dS[state].add(('{}_{}_{}_{}_{}'.format(
                             e + i, e + 10 + i, D, 1, 1), prob if i == 10 else
-                                       (1 - prob) / 9, None))
+                                       (1 - prob) / 9, 0))
                     else:
                         dS[state].add(('{}_{}_{}_{}_{}'.format(
                             e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
-                                       (1 - prob) / 9, None))
+                                       (1 - prob) / 9, 0))
 
             else:
                 for i in xrange(1, 11):
                     if i == 1:
                         dS[state].add(('{}_{}_{}_{}_{}'.format(
                             e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
-                                       (1 - prob) / 9, None))
+                                       (1 - prob) / 9, 0))
                     else:
                         if e == i:
                             dS[state].add(('{}_{}_{}_{}_{}'.format(
                                 e + i, e + i, D, 1, 1), prob if i == 10 else
-                                           (1 - prob) / 9, None))
+                                           (1 - prob) / 9, 0))
                         else:
                             dS[state].add(('{}_{}_{}_{}_{}'.format(
                                 e + i, e + i, D, 0, 1), prob if i == 10 else
-                                           (1 - prob) / 9, None))
+                                           (1 - prob) / 9, 0))
 
     return dS
 
