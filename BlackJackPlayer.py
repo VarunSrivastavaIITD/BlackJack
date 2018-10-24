@@ -94,7 +94,7 @@ def create_hit_table(S, prob):
     return dH
 
 
-def creat_split_table(S, prob):
+def create_split_table(S, prob):
     dH = dict()
 
     for state in S:
