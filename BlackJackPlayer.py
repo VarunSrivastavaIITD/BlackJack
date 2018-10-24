@@ -93,6 +93,7 @@ def create_hit_table(S, prob):
 
     return dH
 
+
 def creat_split_table(S, prob):
     dH = dict()
 
@@ -106,37 +107,36 @@ def creat_split_table(S, prob):
 
         if P == 1 and I == 1:
             # Santiy check (as such not required)
-            if(X == Y):
-                e = X/2
-                if(e == 1):
-                    for i in xrange(1, 11):
+            assert (X == Y)
+            e = int(X / 2)
+            if (e == 1):
+                for i in xrange(1, 11):
+                    if e == i:
+                        dH[state].add(('{}_{}_{}_{}_{}'.format(
+                            e + i, e + 10 + i, D, 1, 1), prob if i == 10 else
+                                       (1 - prob) / 9, None))
+                    else:
+                        dH[state].add(('{}_{}_{}_{}_{}'.format(
+                            e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
+                                       (1 - prob) / 9, None))
+
+            else:
+                for i in xrange(1, 11):
+                    if i == 1:
+                        dH[state].add(('{}_{}_{}_{}_{}'.format(
+                            e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
+                                       (1 - prob) / 9, None))
+                    else:
                         if e == i:
                             dH[state].add(('{}_{}_{}_{}_{}'.format(
-                                e + i, e + 10 + i, D, 1, 1), prob if i == 10 else
+                                e + i, e + i, D, 1, 1), prob if i == 10 else
                                            (1 - prob) / 9, None))
                         else:
                             dH[state].add(('{}_{}_{}_{}_{}'.format(
-                                e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
+                                e + i, e + i, D, 0, 1), prob if i == 10 else
                                            (1 - prob) / 9, None))
-
-                else:
-                    for i in xrange(1, 11):
-                        if i == 1:
-                            dH[state].add(('{}_{}_{}_{}_{}'.format(
-                                e + i, e + 10 + i, D, 0, 1), prob if i == 10 else
-                                           (1 - prob) / 9, None))
-                        else:
-                            if e == i:
-                                dH[state].add(('{}_{}_{}_{}_{}'.format(
-                                    e + i, e + i, D, 1, 1), prob if i == 10 else
-                                               (1 - prob) / 9, None))
-                            else:
-                                dH[state].add(('{}_{}_{}_{}_{}'.format(
-                                    e + i, e + i, D, 0, 1), prob if i == 10 else
-                                               (1 - prob) / 9, None))
 
     return dH
-
 
 
 def create_transition_table(S, prob):
