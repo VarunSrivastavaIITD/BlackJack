@@ -3,13 +3,15 @@ from pprint import pprint
 
 Table = dict()
 
+
 def signum(a, b):
-    if(a > b):
+    if (a > b):
         return 1
-    elif(a == b):
+    elif (a == b):
         return 0
     else:
         return -1
+
 
 def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
     dbj = ace and ten and (dsum == 21)
@@ -29,24 +31,30 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
                 sign = signum(pbj - dbj)
         else:
             sign = 1
-        Table[(dsum, dbj, psum)] = sign*R
-        return sign*R
+        Table[(dsum, dbj, psum)] = sign * R
+        return sign * R
     else:
-        for i, p in zip(range(1,11), [(1-p)/9]*9 + [p]):
+        for i, p in zip(range(1, 11), [(1 - p) / 9] * 9 + [p]):
             val = 0
-            if i==1:
+            if i == 1:
                 if not ace:
                     if (dsum + 11) <= 21:
-                        val += (1-p)*dealer_reward(dsum + 11, True, ten, R, psum, pbj, prob)/9
+                        val += (1 - p) * dealer_reward(dsum + 11, True, ten, R,
+                                                       psum, pbj, prob) / 9
                     else:
-                        val += (1-p)*dealer_reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
+                        val += (1 - p) * dealer_reward(dsum + 1, True, ten, R,
+                                                       psum, pbj, prob) / 9
                 else:
-                    val += (1-p)*dealer_reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
+                    val += (1 - p) * dealer_reward(dsum + 1, True, ten, R,
+                                                   psum, pbj, prob) / 9
             elif i == 10:
-                val += p*dealer_reward(dsum+i, ace, ten, R, psum, pbj, prob)
+                val += p * dealer_reward(dsum + i, ace, ten, R, psum, pbj,
+                                         prob)
             else:
-                val += (1-p)*dealer_dealer_reward(dsum + i, True, ten, R, psum, pbj, prob)/9
+                val += (1 - p) * dealer_dealer_reward(dsum + i, True, ten, R,
+                                                      psum, pbj, prob) / 9
             Table[(dsum, dbj, psum)] = val
+
 
 def create_state_space():
     S = {'TB', 'TL', 'TW', 'TP'}
@@ -183,6 +191,10 @@ def create_split_table(S, prob):
                                            (1 - prob) / 9, 0))
 
     return dS
+
+
+def create_double_table(S, prob):
+    pass
 
 
 def create_transition_table(S, prob):
