@@ -96,7 +96,7 @@ def create_state_space():
 
     # Non pair ace containing initial hands
     S.update('{}_{}_{}_{}_{}'.format(i + 1, i + 11, j, false, true)
-             for i in xrange(2, 10) for j in xrange(1, 11))
+             for i in xrange(2, 11) for j in xrange(1, 11))
 
     # Pair containing initial hands
     S.update('{}_{}_{}_{}_{}'.format(2 * i, 2 * i, j, true, true)
