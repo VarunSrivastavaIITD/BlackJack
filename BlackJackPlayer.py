@@ -1,10 +1,11 @@
 from __future__ import print_function, division
 from pprint import pprint
+import sys
 
 Table = dict()
 
 
-def signum(a, b):
+def signum(a, b=0):
     if (a > b):
         return 1
     elif (a == b):
@@ -69,10 +70,8 @@ def Qfunction(state, action, prob):
     if X == 11 and Y == 21 and P == False and I == False:
         pbj = True
 
-    if D == 1:
-        ace = True
-    if D == 10:
-        ten = True
+    ace = True if D == 1 else False
+    ten = True if D == 10 else False
 
     psum = Y
     dsum = 11 if D == 1 else D
@@ -230,7 +229,8 @@ def create_double_table(S, prob, hit_table=None):
         hit_table = create_hit_table(S, prob)
 
     double_table = {
-        k: sum(val[1] * Qfunction(val[0], 'TD', prob) for val in v)
+        k: sum(val[1] * Qfunction(val[0], 'TD', prob) for val in v
+               if 'T' not in val[0])
         for k, v in hit_table.items() if 'T' not in k
     }
 
@@ -270,12 +270,14 @@ def value_iteration(S, prob, iterations=100):
             maxaction = None
 
             # Hit action
+            Q_state_hit = -sys.maxint - 1
             if Y < 21:
                 hit_neighbors = dH[state]
                 Q_state_hit = sum(
                     n[2] + n[1] * value_table[n[0]] for n in hit_neighbors)
 
             # Split action
+            Q_state_split = -sys.maxint - 1
             if P:
                 split_neighbors = dP[state]
                 if X == 2 and Y == 12:
@@ -286,6 +288,7 @@ def value_iteration(S, prob, iterations=100):
                                             for n in split_neighbors)
 
             # Double action
+            Q_state_double = -sys.maxint - 1
             if I:
                 Q_state_double = dD[state]
 
@@ -312,9 +315,9 @@ def value_iteration(S, prob, iterations=100):
 
 
 def main():
-    states = create_state_space()
-    ttable = create_hit_table(states, 4 / 13)
-    pprint(ttable)
+    prob = float(sys.argv[1])
+    _, policy = value_iteration(create_state_space(), prob)
+    print(len(policy))
 
 
 if __name__ == '__main__':
