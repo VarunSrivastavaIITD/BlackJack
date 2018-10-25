@@ -133,8 +133,6 @@ def create_hit_table(S, prob):
     dH = dict()
 
     B = 'TB'
-    L = 'TL'
-    W = 'TW'
     P = 'TP'
 
     for state in S:
