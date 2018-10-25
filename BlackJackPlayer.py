@@ -101,7 +101,7 @@ def create_state_space():
 
     # Pair containing initial hands
     S.update('{}_{}_{}_{}_{}'.format(2 * i, 2 * i, j, true, true)
-             for i in xrange(1, 11) for j in xrange(1, 11))
+             for i in xrange(2, 11) for j in xrange(1, 11))
 
     # Non pair non ace containing non initial hands
     S.update('{}_{}_{}_{}_{}'.format(i, i, j, false, false)
@@ -110,6 +110,11 @@ def create_state_space():
     # Non pair ace containing non initial hands
     S.update('{}_{}_{}_{}_{}'.format(i + 1, i + 11, j, false, false)
              for i in xrange(2, 11) for j in xrange(1, 11))
+
+    # Pair ace containing initial bounds
+    S.update('{}_{}_{}_{}_{}'.format(2, 12, j, true, true)
+             for j in xrange(1, 11))
+
     return S
 
 
@@ -190,7 +195,6 @@ def create_split_table(S, prob):
 
         if P == 1 and I == 1:
             # Santiy check (as such not required)
-            assert (X == Y)
             e = int(X / 2)
             if (e == 1):
                 for i in xrange(1, 11):
