@@ -21,7 +21,7 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
         return Table[(dsum, dbj, psum)]
 
     if dsum >= 17:
-        sign
+        sign = 0
         if dsum < 21:
             sign = signum(psum - dsum)
         elif dsum == 21:
@@ -34,8 +34,8 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
         Table[(dsum, dbj, psum)] = sign * R
         return sign * R
     else:
-        for i, p in zip(range(1, 11), [(1 - p) / 9] * 9 + [p]):
-            val = 0
+        val = 0
+        for i, p in zip(range(1, 11), [(1 - prob) / 9] * 9 + [prob]):
             if i == 1:
                 if not ace:
                     if (dsum + 11) <= 21:
@@ -48,12 +48,41 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
                     val += (1 - p) * dealer_reward(dsum + 1, True, ten, R,
                                                    psum, pbj, prob) / 9
             elif i == 10:
-                val += p * dealer_reward(dsum + i, ace, ten, R, psum, pbj,
+                val += p * dealer_reward(dsum + i, ace, True, R, psum, pbj,
                                          prob)
             else:
-                val += (1 - p) * dealer_dealer_reward(dsum + i, True, ten, R,
-                                                      psum, pbj, prob) / 9
-            Table[(dsum, dbj, psum)] = val
+                val += (1 - p) * dealer_reward(dsum + i, ace, ten, R, psum,
+                                               pbj, prob) / 9
+
+        Table[(dsum, dbj, psum)] = val
+        return val
+
+
+def Qfunction(state, action, prob):
+
+    if action not in {'TS', 'TD'}:
+        raise ValueError('Incorrect action {} for Qfunction'.format(action))
+
+    X, Y, D, P, I = map(int, state.split('_'))
+
+    pbj = False
+    if X == 11 and Y == 21 and P == False and I == False:
+        pbj = True
+
+    if D == 1:
+        ace = True
+    if D == 10:
+        ten = True
+
+    psum = Y
+    dsum = 11 if D == 1 else D
+
+    qval = dealer_reward(dsum, ace, ten, 1, psum, pbj, prob)
+
+    if action == 'TD':
+        qval *= 2
+
+    return qval
 
 
 def create_state_space():
@@ -193,8 +222,22 @@ def create_split_table(S, prob):
     return dS
 
 
-def create_double_table(S, prob):
-    pass
+def create_double_table(S, prob, hit_table=None):
+
+    if hit_table is False:
+        hit_table = create_hit_table(S, prob)
+
+    double_table = {
+        k: sum(val[1] * Qfunction(val[0], 'TD', prob) for val in v)
+        for k, v in hit_table.items() if 'T' not in k
+    }
+
+    return double_table
+
+
+def create_stand_table(S, prob):
+    stand_table = {s: Qfunction(s, 'TS', prob) for s in S if 'T' not in s}
+    return stand_table
 
 
 def create_transition_table(S, prob):
