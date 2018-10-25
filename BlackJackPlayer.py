@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 from pprint import pprint
 import sys
+from random import random, uniform
 from operator import itemgetter
 
 Table = dict()
@@ -30,7 +31,7 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
             if psum != 21:
                 sign = -1
             if psum == 21:
-                sign = signum(pbj - dbj)
+                sign = 1.5 * signum(pbj - dbj)
         else:
             sign = 1
         Table[(dsum, dbj, psum)] = sign * R
@@ -61,6 +62,11 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
 
 
 def Qfunction(state, action, prob):
+
+    if state == 'TB':
+        if action == 'TD':
+            return -2
+        return -1
 
     if action not in {'TS', 'TD'}:
         raise ValueError('Incorrect action {} for Qfunction'.format(action))
@@ -106,14 +112,14 @@ def create_state_space():
 
     # Non pair non ace containing non initial hands
     S.update('{}_{}_{}_{}_{}'.format(i, i, j, false, false)
-             for i in xrange(5, 22) for j in xrange(1, 11))
+             for i in xrange(3, 22) for j in xrange(1, 11))
 
     # Non pair ace containing non initial hands
     S.update('{}_{}_{}_{}_{}'.format(i + 1, i + 11, j, false, false)
              for i in xrange(2, 11) for j in xrange(1, 11))
 
     # Pair ace containing initial bounds
-    S.update(       
+    S.update(
         '{}_{}_{}_{}_{}'.format(2, 12, j, true, true) for j in xrange(1, 11))
 
     return S
@@ -134,7 +140,6 @@ def create_hit_table(S, prob):
     dH = dict()
 
     B = 'TB'
-    P = 'TP'
 
     for state in S:
         if 'T' in state:
@@ -231,8 +236,7 @@ def create_double_table(S, prob, hit_table=None):
         hit_table = create_hit_table(S, prob)
 
     double_table = {
-        k: sum(val[1] * Qfunction(val[0], 'TD', prob) for val in v
-               if 'T' not in val[0])
+        k: sum(val[1] * Qfunction(val[0], 'TD', prob) for val in v)
         for k, v in hit_table.items() if 'T' not in k
     }
 
@@ -258,9 +262,10 @@ def value_iteration(S, prob, iterations=100):
     dP = create_split_table(S, prob)
     dS = create_stand_table(S, prob)
 
-    value_table = {s: 0 for s in S}
+    value_table = {s: 0 if 'T' in s else uniform(-2, 2) for s in S}
+    new_value_table = value_table
     policy = {s: None for s in S}
-
+    prevmax = 0
     for _ in xrange(iterations):
         for state in value_table:
             if 'T' in state:
@@ -276,7 +281,7 @@ def value_iteration(S, prob, iterations=100):
             if Y < 21:
                 hit_neighbors = dH[state]
                 Q_state_hit = sum(
-                    n[2] + n[1] * value_table[n[0]] for n in hit_neighbors)
+                    (n[1] * (value_table[n[0]] + n[2])) for n in hit_neighbors)
 
             # Split action
             Q_state_split = -sys.maxint - 1
@@ -297,48 +302,99 @@ def value_iteration(S, prob, iterations=100):
             # Stand action
             Q_state_stand = dS[state]
 
-            if (maxvalue < Q_state_hit):
-                maxvalue = Q_state_hit
-                maxaction = 'H'
-            if (maxvalue < Q_state_split):
-                maxvalue = Q_state_split
-                maxaction = 'P'
             if (maxvalue < Q_state_stand):
                 maxvalue = Q_state_stand
                 maxaction = 'S'
+            # if _ == iterations - 1:
+            if (maxvalue < Q_state_split):
+                maxvalue = Q_state_split
+                maxaction = 'P'
             if (maxvalue < Q_state_double):
                 maxvalue = Q_state_double
                 maxaction = 'D'
+            if (maxvalue < Q_state_hit):
+                maxvalue = Q_state_hit
+                maxaction = 'H'
 
-            value_table[state] = maxvalue
+            new_value_table[state] = maxvalue
             policy[state] = maxaction
+
+        value_table = new_value_table
+        maxv = max(value_table.values())
+        res = maxv - prevmax
+        # print('Residual @ iteration {}: {} '.format(_, res))
+        # print('Minimum Value: {}'.format(min(value_table.values())))
+        # print('Sum: {}'.format(sum(value_table.values())))
+        prevmax = maxv
 
     return value_table, policy
 
 
 def print_policy(policy):
     hard_actions = []
+    soft_actions = []
+    pairs = []
 
     for s, a in policy.items():
         if 'T' in s:
             continue
         X, Y, D, P, I = map(int, s.split('_'))
 
-        if (X == Y) and P == 0 and I == 1:
-            hard_actions.append((X, a, D))
+        if (X == Y) and P == 0 and I == 1 and X < 20:
+            hard_actions.append((X, a, 11 if D == 1 else D))
+
+        if (X != Y) and P == 0 and I == 1 and X < 11:
+            soft_actions.append(('A{}'.format(X - 1), a, 11 if D == 1 else D))
+
+        if P == 1 and I == 1:
+            pairs.append(
+                ('AA' if X == 2 and Y == 12 else '{0}{0}'.format(int(X / 2)),
+                 a, 11 if D == 1 else D))
 
     hard_actions.sort(key=itemgetter(0, 2))
-    for i in xrange(0, len(hard_actions), 10):
-        print('\t'.join([str(hard_actions[i][0])] +
-                        [str(h[1]) for h in hard_actions[i:i + 10]]))
+
+    with open('Policy.txt', 'w') as f:
+        for i in xrange(0, len(hard_actions), 10):
+            print(
+                str(hard_actions[i][0]),
+                ' '.join([str(h[1]) for h in hard_actions[i:i + 10]]),
+                sep='\t',
+                file=f)
+
+        soft_actions.sort(key=itemgetter(0, 2))
+        for i in xrange(0, len(soft_actions), 10):
+            print(
+                str(soft_actions[i][0]),
+                ' '.join([str(h[1]) for h in soft_actions[i:i + 10]]),
+                sep='\t',
+                file=f)
+
+        pairs.sort(key=itemgetter(0, 2))
+        for i in xrange(10, len(pairs) - 10, 10):
+            print(
+                str(pairs[i][0]),
+                ' '.join([str(h[1]) for h in pairs[i:i + 10]]),
+                sep='\t',
+                file=f)
+        print(
+            str(pairs[0][0]),
+            ' '.join([str(h[1]) for h in pairs[0:0 + 10]]),
+            sep='\t',
+            file=f)
+        print(
+            str(pairs[len(pairs) - 10][0]),
+            ' '.join([str(h[1]) for h in pairs[len(pairs) - 10:len(pairs)]]),
+            sep='\t',
+            file=f,
+            end='')
 
 
 def main():
-    # prob = float(sys.argv[1])
-    prob = 4 / 13
+    prob = float(sys.argv[1])
+    # prob = 4 / 13
     S = create_state_space()
     print(len(S))
-    _, policy = value_iteration(S, prob)
+    _, policy = value_iteration(S, prob, 100)
     print(len(policy))
     print_policy(policy)
 
