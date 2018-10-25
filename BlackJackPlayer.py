@@ -244,6 +244,75 @@ def create_stand_table(S, prob):
     return stand_table
 
 
+def create_transition_table(S, prob):
+    dH = create_hit_table(S, prob)
+
+    pprint(dH)
+    raise NotImplementedError
+
+
+def value_iteration(S, prob, iterations=100):
+
+    dH = create_hit_table(S, prob)
+    dD = create_double_table(S, prob, dH)
+    dP = create_split_table(S, prob)
+    dS = create_stand_table(S, prob)
+
+    value_table = {s: 0 for s in S}
+    policy = {s: None for s in S}
+
+    for _ in xrange(iterations):
+        for state in value_table:
+            if 'T' in state:
+                continue
+
+            X, Y, D, P, I = map(int, state.split('_'))
+
+            maxvalue = -sys.maxint - 1
+            maxaction = None
+
+            # Hit action
+            if Y < 21:
+                hit_neighbors = dH[state]
+                Q_state_hit = sum(
+                    n[2] + n[1] * value_table[n[0]] for n in hit_neighbors)
+
+            # Split action
+            if P:
+                split_neighbors = dP[state]
+                if X == 2 and Y == 12:
+                    Q_state_split = 2 * sum(n[1] * Qfunction(n[0], 'TS', prob)
+                                            for n in split_neighbors)
+                else:
+                    Q_state_split = 2 * sum(n[2] + n[1] * value_table[n[0]]
+                                            for n in split_neighbors)
+
+            # Double action
+            if I:
+                Q_state_double = dD[state]
+
+            # Stand action
+            Q_state_stand = dS[state]
+
+            if (maxvalue < Q_state_hit):
+                maxvalue = Q_state_hit
+                maxaction = 'H'
+            if (maxvalue < Q_state_split):
+                maxvalue = Q_state_split
+                maxaction = 'P'
+            if (maxvalue < Q_state_stand):
+                maxvalue = Q_state_stand
+                maxaction = 'S'
+            if (maxvalue < Q_state_double):
+                maxvalue = Q_state_double
+                maxaction = 'D'
+
+            value_table[state] = maxvalue
+            policy[state] = maxaction
+
+    return value_table, policy
+
+
 def main():
     states = create_state_space()
     ttable = create_hit_table(states, 4 / 13)
