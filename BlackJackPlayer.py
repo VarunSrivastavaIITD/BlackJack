@@ -1,6 +1,56 @@
 from __future__ import print_function, division
 from pprint import pprint
 
+Table = dict()
+
+def signum(a, b):
+    if(a > b):
+        return 1
+    elif(a == b):
+        return 0
+    else:
+        return -1
+
+def reward(dsum, ace, ten, R, psum, pbj, prob):
+    dbj = ace and ten and (dsum == 21)
+    assert ((not dbj) or (dsum == 21))
+
+    if not dbj:
+        if dsum in Table:
+            return Table[dsum]
+    else:
+        if (dsum, dbj) in Table:
+            return Table[(dsum, dbj)]
+
+    if dsum >= 17:
+        sign
+        if dsum < 21:
+            sign = signum(psum - dsum)
+        elif dsum == 21:
+            if psum != 21:
+                sign = -1
+            if psum == 21:
+                sign = signum(pbj - dbj)
+        else:
+            sign = 1
+        Table[(dsum, dbj)] = sign*R
+        return sign*R
+    else:
+        for i, p in zip(range(1,11), [(1-p)/9]*9 + [p]):
+            val = 0
+            if i==1:
+                if not ace:
+                    if (dsum + 11) <= 21:
+                        val += (1-p)*reward(dsum + 11, True, ten, R, psum, pbj, prob)/9
+                    else:
+                        val += (1-p)*reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
+                else:
+                    val += (1-p)*reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
+            elif i == 10:
+                val += p*reward(dsum+i, ace, ten, R, psum, pbj, prob)
+            else:
+                val += (1-p)*reward(dsum + i, True, ten, R, psum, pbj, prob)/9
+            Table[(dsum, dbj)] = val
 
 def create_state_space():
     S = {'TB', 'TL', 'TW', 'TP'}
