@@ -11,7 +11,7 @@ def signum(a, b):
     else:
         return -1
 
-def reward(dsum, ace, ten, R, psum, pbj, prob):
+def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
     dbj = ace and ten and (dsum == 21)
     assert ((not dbj) or (dsum == 21))
 
@@ -41,15 +41,15 @@ def reward(dsum, ace, ten, R, psum, pbj, prob):
             if i==1:
                 if not ace:
                     if (dsum + 11) <= 21:
-                        val += (1-p)*reward(dsum + 11, True, ten, R, psum, pbj, prob)/9
+                        val += (1-p)*dealer_reward(dsum + 11, True, ten, R, psum, pbj, prob)/9
                     else:
-                        val += (1-p)*reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
+                        val += (1-p)*dealer_reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
                 else:
-                    val += (1-p)*reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
+                    val += (1-p)*dealer_reward(dsum + 1, True, ten, R, psum, pbj, prob)/9
             elif i == 10:
-                val += p*reward(dsum+i, ace, ten, R, psum, pbj, prob)
+                val += p*dealer_reward(dsum+i, ace, ten, R, psum, pbj, prob)
             else:
-                val += (1-p)*reward(dsum + i, True, ten, R, psum, pbj, prob)/9
+                val += (1-p)*dealer_dealer_reward(dsum + i, True, ten, R, psum, pbj, prob)/9
             Table[(dsum, dbj)] = val
 
 def create_state_space():
