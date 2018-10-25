@@ -112,8 +112,8 @@ def create_state_space():
              for i in xrange(2, 11) for j in xrange(1, 11))
 
     # Pair ace containing initial bounds
-    S.update('{}_{}_{}_{}_{}'.format(2, 12, j, true, true)
-             for j in xrange(1, 11))
+    S.update(
+        '{}_{}_{}_{}_{}'.format(2, 12, j, true, true) for j in xrange(1, 11))
 
     return S
 
@@ -242,13 +242,6 @@ def create_double_table(S, prob, hit_table=None):
 def create_stand_table(S, prob):
     stand_table = {s: Qfunction(s, 'TS', prob) for s in S if 'T' not in s}
     return stand_table
-
-
-def create_transition_table(S, prob):
-    dH = create_hit_table(S, prob)
-
-    pprint(dH)
-    raise NotImplementedError
 
 
 def main():
