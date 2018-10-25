@@ -15,12 +15,8 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
     dbj = ace and ten and (dsum == 21)
     assert ((not dbj) or (dsum == 21))
 
-    if not dbj:
-        if dsum in Table:
-            return Table[dsum]
-    else:
-        if (dsum, dbj) in Table:
-            return Table[(dsum, dbj)]
+    if (dsum, dbj, psum) in Table:
+        return Table[(dsum, dbj, psum)]
 
     if dsum >= 17:
         sign
@@ -33,7 +29,7 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
                 sign = signum(pbj - dbj)
         else:
             sign = 1
-        Table[(dsum, dbj)] = sign*R
+        Table[(dsum, dbj, psum)] = sign*R
         return sign*R
     else:
         for i, p in zip(range(1,11), [(1-p)/9]*9 + [p]):
@@ -50,7 +46,7 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
                 val += p*dealer_reward(dsum+i, ace, ten, R, psum, pbj, prob)
             else:
                 val += (1-p)*dealer_dealer_reward(dsum + i, True, ten, R, psum, pbj, prob)/9
-            Table[(dsum, dbj)] = val
+            Table[(dsum, dbj, psum)] = val
 
 def create_state_space():
     S = {'TB', 'TL', 'TW', 'TP'}
