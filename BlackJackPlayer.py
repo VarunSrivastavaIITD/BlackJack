@@ -41,20 +41,20 @@ def dealer_reward(dsum, ace, ten, R, psum, pbj, prob):
             if i == 1:
                 if not ace:
                     if (dsum + 11) <= 21:
-                        val += (1 - p) * dealer_reward(dsum + 11, True, ten, R,
-                                                       psum, pbj, prob) / 9
+                        val += (p) * dealer_reward(dsum + 11, True, ten, R,
+                                                   psum, pbj, prob)
                     else:
-                        val += (1 - p) * dealer_reward(dsum + 1, True, ten, R,
-                                                       psum, pbj, prob) / 9
+                        val += (p) * dealer_reward(dsum + 1, True, ten, R,
+                                                   psum, pbj, prob)
                 else:
-                    val += (1 - p) * dealer_reward(dsum + 1, True, ten, R,
-                                                   psum, pbj, prob) / 9
+                    val += p * dealer_reward(dsum + 1, True, ten, R, psum, pbj,
+                                             prob)
             elif i == 10:
                 val += p * dealer_reward(dsum + i, ace, True, R, psum, pbj,
                                          prob)
             else:
-                val += (1 - p) * dealer_reward(dsum + i, ace, ten, R, psum,
-                                               pbj, prob) / 9
+                val += p * dealer_reward(dsum + i, ace, ten, R, psum, pbj,
+                                         prob)
 
         Table[(dsum, dbj, psum)] = val
         return val
@@ -68,13 +68,14 @@ def Qfunction(state, action, prob):
     X, Y, D, P, I = map(int, state.split('_'))
 
     pbj = False
-    if X == 11 and Y == 21 and P == False and I == False:
+    if X == 11 and Y == 21 and P == 0:
         pbj = True
 
     ace = True if D == 1 else False
     ten = True if D == 10 else False
 
     psum = Y
+    assert (Y < 22)
     dsum = 11 if D == 1 else D
 
     qval = dealer_reward(dsum, ace, ten, 1, psum, pbj, prob)
@@ -112,7 +113,7 @@ def create_state_space():
              for i in xrange(2, 11) for j in xrange(1, 11))
 
     # Pair ace containing initial bounds
-    S.update(
+    S.update(       
         '{}_{}_{}_{}_{}'.format(2, 12, j, true, true) for j in xrange(1, 11))
 
     return S
@@ -321,25 +322,25 @@ def print_policy(policy):
     for s, a in policy.items():
         if 'T' in s:
             continue
-        X, Y, D, P, I = s.split('_')
+        X, Y, D, P, I = map(int, s.split('_'))
 
-        if X == Y and P == 0:
+        if (X == Y) and P == 0 and I == 1:
             hard_actions.append((X, a, D))
 
-    hard_actions.sort(key=itemgetter(1, 2))
-
+    hard_actions.sort(key=itemgetter(0, 2))
     for i in xrange(0, len(hard_actions), 10):
-        print('\t'.join(hard_actions[i][0],
-                        *[h[1] for h in hard_actions[i:i + 10]]))
+        print('\t'.join([str(hard_actions[i][0])] +
+                        [str(h[1]) for h in hard_actions[i:i + 10]]))
 
 
 def main():
-    prob = float(sys.argv[1])
+    # prob = float(sys.argv[1])
+    prob = 4 / 13
     S = create_state_space()
     print(len(S))
     _, policy = value_iteration(S, prob)
     print(len(policy))
-    pprint(policy)
+    print_policy(policy)
 
 
 if __name__ == '__main__':
