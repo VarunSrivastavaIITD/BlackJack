@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 from pprint import pprint
 import sys
+from operator import itemgetter
 
 Table = dict()
 
@@ -314,10 +315,31 @@ def value_iteration(S, prob, iterations=100):
     return value_table, policy
 
 
+def print_policy(policy):
+    hard_actions = []
+
+    for s, a in policy.items():
+        if 'T' in s:
+            continue
+        X, Y, D, P, I = s.split('_')
+
+        if X == Y and P == 0:
+            hard_actions.append((X, a, D))
+
+    hard_actions.sort(key=itemgetter(1, 2))
+
+    for i in xrange(0, len(hard_actions), 10):
+        print('\t'.join(hard_actions[i][0],
+                        *[h[1] for h in hard_actions[i:i + 10]]))
+
+
 def main():
     prob = float(sys.argv[1])
-    _, policy = value_iteration(create_state_space(), prob)
+    S = create_state_space()
+    print(len(S))
+    _, policy = value_iteration(S, prob)
     print(len(policy))
+    pprint(policy)
 
 
 if __name__ == '__main__':
